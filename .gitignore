@@ -1,0 +1,35 @@
+# Dependency directory
+node_modules/
+
+# Build artifacts (adjust the path/folder name if different in your project, e.g., 'dist' or 'out')
+/build
+/dist
+/coverage
+
+# TypeScript output files
+# Ignore all generated JavaScript and map files outside of source directories
+*.js
+*.map
+# If you have source files in a src directory, you may want to ignore output in the root
+# but keep source files tracked.
+# For example, if your source is in 'src', but tsconfig outputs to root:
+# src/**/*.js
+# src/**/*.map
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Editor/IDE-specific files
+.vscode/ # VS Code configuration (optional, depending on project standards)
+.idea/    # IntelliJ IDEs
+*.iml     # IntelliJ project files
+.DS_Store # macOS system files
+
+# NPM debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+pnpm-error.log*

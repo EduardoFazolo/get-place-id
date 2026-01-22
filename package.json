@@ -1,0 +1,39 @@
+{
+  "name": "get-gplace-id",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "test": "vitest run --globals",
+    "test:watch": "vitest --globals",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "google maps",
+    "place id",
+    "url parser"
+  ],
+  "author": "",
+  "license": "ISC",
+
+  "devDependencies": {
+    "@types/node": "^25.0.10",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.17"
+  }
+}
