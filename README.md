@@ -10,6 +10,14 @@ This package handles standard URLs, short URLs, mobile share links, and complex 
 npm install get-gplace-id
 ```
 
+```bash
+bun install get-gplace-id
+```
+
+```bash
+pnpm install get-gplace-id
+```
+
 ## Usage
 
 You must provide a valid **Google Maps API Key** with access to the **Places API** (specifically *Text Search* and *Find Place from Text*).
