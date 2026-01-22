@@ -115,6 +115,32 @@ async function extractCoordinatesFromPage(url: string): Promise<{lat: number, ln
   }
 }
 
+export const searchUrlResolver: Resolver = async (url, options) => {
+  if (!url.includes("/search")) return null;
+   
+  console.log("Processing Google Search URL:", url);
+  try {
+    const urlObj = new URL(url);
+    const query = urlObj.searchParams.get("q");
+
+    if (query) {
+       console.log("Found query in search URL:", query);
+       // We might not have location access here easily without more complex parsing.
+       // Attempt Text Search with just the name. 
+       // Note: This relies on the API finding the most relevant result globally or biased by key IP, 
+       // effectively working well for unique names or if options allow passing bias.
+       // Current searchByTextAndLocation requires lat/lng.
+       
+       // Let's create a variant or overload searchByTextAndLocation to allow null lat/lng?
+       // Or just call findPlaceFromText?
+       return await findPlaceFromText(query, options);
+    }
+  } catch (e) {
+    console.error("Error in searchUrlResolver:", e);
+  }
+  return null;
+}
+
 export const directResolver: Resolver = async (url) => {
   console.log("Processing URL (Direct Resolver):", url);
 
@@ -128,7 +154,7 @@ export const directResolver: Resolver = async (url) => {
 };
 
 export async function isShortUrl(url: string): Promise<boolean> {
-  return url.includes("maps.app.goo.gl") || url.includes("goo.gl/maps");
+  return url.includes("maps.app.goo.gl") || url.includes("goo.gl/maps") || url.includes("share.google");
 }
 
 export async function expandShortUrl(url: string): Promise<string> {
@@ -136,25 +162,11 @@ export async function expandShortUrl(url: string): Promise<string> {
   try {
     const response = await fetch(url, {
       redirect: "follow",
-      method: "HEAD", // Try HEAD first to save bandwidth
       headers: {
         "User-Agent":
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
       },
     });
-    
-    // If HEAD didn't follow redirect (sometimes servers don't serve redirect on HEAD), try GET
-    if (response.url === url) {
-       const getResponse = await fetch(url, {
-        redirect: "follow",
-        headers: {
-            "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-        },
-      });
-      return getResponse.url;
-    }
-
     return response.url;
   } catch (error) {
     console.error("Error expanding short URL:", error);

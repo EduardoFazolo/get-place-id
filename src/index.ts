@@ -1,5 +1,5 @@
 import { GPlaceIdOptions } from "./types";
-import { directResolver, expandShortUrl, isShortUrl, regularResolver, searchIntentResolver } from "./resolvers";
+import { directResolver, expandShortUrl, isShortUrl, regularResolver, searchIntentResolver, searchUrlResolver } from "./resolvers";
 
 export * from "./types";
 
@@ -28,8 +28,12 @@ export async function getGPlaceId(
     // 3. Search Intent Resolver (for lqi/pvq URLs)
     const searchMatch = await searchIntentResolver(currentUrl, options);
     if (searchMatch) return searchMatch;
+    
+    // 4. Search URL Resolver (for google.com/search?q=...)
+    const searchUrlMatch = await searchUrlResolver(currentUrl, options);
+    if (searchUrlMatch) return searchUrlMatch;
 
-    // 4. Regular URL Resolver (Coordinates parsing + Text Search)
+    // 5. Regular URL Resolver (Coordinates parsing + Text Search)
     const regularMatch = await regularResolver(currentUrl, options);
     if (regularMatch) return regularMatch;
 
