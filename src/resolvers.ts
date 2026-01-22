@@ -98,8 +98,9 @@ async function extractCoordinatesFromPage(url: string): Promise<{lat: number, ln
     if (matches) {
        for (const match of matches) {
           const parts = match.split(",").map(p => parseFloat(p.trim()));
-          if (parts.length === 2) {
-             const [v1, v2] = parts;
+          const v1 = parts[0];
+          const v2 = parts[1];
+          if (parts.length === 2 && v1 !== undefined && v2 !== undefined) {
              if (Math.abs(v1) <= 90 && Math.abs(v2) <= 180) {
                  return { lat: v1, lng: v2 };
              }
@@ -227,11 +228,14 @@ async function searchByTextAndLocation(
   const response = await fetch(searchUrl);
   const searchData = (await response.json()) as SearchResponse;
 
-  if (searchData.results && searchData.results.length > 0) {
-    let bestMatch = searchData.results[0];
+  const results = searchData.results;
+  if (results && results.length > 0) {
+    let bestMatch = results[0];
+    if (!bestMatch) return null;
+
     let bestScore = 0;
 
-    for (const result of searchData.results) {
+    for (const result of results) {
       // Exact name match gets highest priority
       const exactNameMatch =
         result.name.toLowerCase() === query.toLowerCase();
@@ -321,12 +325,16 @@ async function findPlaceFromText(
     const searchResponse = await fetch(searchUrl);
     const searchData = (await searchResponse.json()) as SearchResponse;
 
-    if (searchData.candidates && searchData.candidates.length > 0) {
-      console.log(
-        "Found place ID via text search:",
-        searchData.candidates[0].place_id
-      );
-      return searchData.candidates[0].place_id;
+    const candidates = searchData.candidates;
+    if (candidates && candidates.length > 0) {
+      const firstCandidate = candidates[0];
+      if (firstCandidate) {
+        console.log(
+            "Found place ID via text search:",
+            firstCandidate.place_id
+        );
+        return firstCandidate.place_id;
+      }
     }
     return null;
 }
