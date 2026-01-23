@@ -21,6 +21,11 @@ interface SearchResponse {
   status: string;
 }
 
+interface PlaceDetailsResponse {
+  result?: PlaceResult;
+  status: string;
+}
+
 // ==========================================
 // Resolvers
 // ==========================================
@@ -93,6 +98,15 @@ async function extractCoordinatesFromPage(url: string): Promise<{lat: number, ln
     });
     const text = await response.text();
     
+    // 1. Try staticmap pattern (Most reliable)
+    const staticMapMatch = text.match(/staticmap\?center=(-?\d+\.\d+)%2C(-?\d+\.\d+)/);
+    if (staticMapMatch) {
+        const lat = parseFloat(staticMapMatch[1]!);
+        const lng = parseFloat(staticMapMatch[2]!);
+        return { lat, lng };
+    }
+
+    // 2. Fallback to generic pattern
     const matches = text.match(/(-?\d+\.\d+),\s*(-?\d+\.\d+)/g);
     
     if (matches) {
@@ -142,6 +156,30 @@ export const searchUrlResolver: Resolver = async (url, options) => {
   return null;
 }
 
+export const cidResolver: Resolver = async (url, options) => {
+  if (!url.includes("cid=")) return null;
+
+  try {
+    const urlObj = new URL(url);
+    const cid = urlObj.searchParams.get("cid");
+
+    if (cid) {
+      // Use Place Details API with cid parameter (undocumented but supported)
+      const detailsUrl = `https://maps.googleapis.com/maps/api/place/details/json?cid=${cid}&key=${options.apiKey}`;
+      
+      const response = await fetch(detailsUrl);
+      const data = (await response.json()) as PlaceDetailsResponse; 
+      
+      if (data.status === "OK" && data.result) {
+          return data.result.place_id;
+      }
+    }
+  } catch (e) {
+    console.error("Error in cidResolver:", e);
+  }
+  return null;
+};
+
 export const directResolver: Resolver = async (url) => {
   console.log("Processing URL (Direct Resolver):", url);
 
@@ -149,12 +187,6 @@ export const directResolver: Resolver = async (url) => {
   if (directPlaceIdMatch && directPlaceIdMatch[1]) {
     console.log("Found direct place_id:", directPlaceIdMatch[1]);
     return directPlaceIdMatch[1];
-  }
-  const directPlaceIdMatch2 = url.match(/cid[=:]([^&]+)/);
-
-  if(url.includes("maps.google.com") && directPlaceIdMatch2 && directPlaceIdMatch2[1]) {
-    console.log("Found direct place_id2:", directPlaceIdMatch2[1]);
-    return directPlaceIdMatch2[1];
   }
 
   return null;
@@ -330,6 +362,7 @@ async function findPlaceFromText(
 
     const searchResponse = await fetch(searchUrl);
     const searchData = (await searchResponse.json()) as SearchResponse;
+    console.log("findPlaceFromText response:", JSON.stringify(searchData, null, 2));
 
     const candidates = searchData.candidates;
     if (candidates && candidates.length > 0) {

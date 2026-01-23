@@ -135,4 +135,29 @@ describe('getGPlaceId', () => {
     expect(result).toBe('ChIJ_TEXT_MATCH');
     expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('place/findplacefromtext/json'));
   });
+
+  it('should handle CID URLs', async () => {
+    const url = 'https://maps.google.com/?cid=4027754871269051926';
+
+    const mockDetailsResponse = {
+      result: {
+          place_id: 'ChIJ_CID_MATCH'
+      },
+      status: 'OK'
+    };
+
+    fetchMock.mockImplementation(async (input) => {
+        // Check for Place Details API with CID
+        if (input.toString().includes('place/details/json') && input.toString().includes('cid=4027754871269051926')) {
+               return {
+                    ok: true,
+                    json: async () => mockDetailsResponse
+                } as Response;
+        }
+        return { url: input } as Response;
+    });
+
+    const result = await getGPlaceId(url, { apiKey });
+    expect(result).toBe('ChIJ_CID_MATCH');
+  });
 });

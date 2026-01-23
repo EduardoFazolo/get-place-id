@@ -1,5 +1,5 @@
 import { GPlaceIdOptions } from "./types";
-import { directResolver, expandShortUrl, isShortUrl, regularResolver, searchIntentResolver, searchUrlResolver } from "./resolvers";
+import { cidResolver, directResolver, expandShortUrl, isShortUrl, regularResolver, searchIntentResolver, searchUrlResolver } from "./resolvers";
 
 export * from "./types";
 
@@ -33,7 +33,11 @@ export async function getGPlaceId(
     const searchUrlMatch = await searchUrlResolver(currentUrl, options);
     if (searchUrlMatch) return searchUrlMatch;
 
-    // 5. Regular URL Resolver (Coordinates parsing + Text Search)
+    // 5. CID Resolver (for maps.google.com/?cid=...)
+    const cidMatch = await cidResolver(currentUrl, options);
+    if (cidMatch) return cidMatch;
+
+    // 6. Regular URL Resolver (Coordinates parsing + Text Search)
     const regularMatch = await regularResolver(currentUrl, options);
     if (regularMatch) return regularMatch;
 
