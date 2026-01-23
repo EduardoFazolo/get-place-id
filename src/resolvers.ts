@@ -150,6 +150,12 @@ export const directResolver: Resolver = async (url) => {
     console.log("Found direct place_id:", directPlaceIdMatch[1]);
     return directPlaceIdMatch[1];
   }
+  const directPlaceIdMatch2 = url.match(/cid[=:]([^&]+)/);
+
+  if(url.includes("maps.google.com") && directPlaceIdMatch2 && directPlaceIdMatch2[1]) {
+    console.log("Found direct place_id2:", directPlaceIdMatch2[1]);
+    return directPlaceIdMatch2[1];
+  }
 
   return null;
 };
